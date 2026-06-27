@@ -1,4 +1,12 @@
-# Smart Torrent Router for Firefox
+<p align="center">
+  <img src="public/icons/logo.png" width="128" height="128" alt="Smart Torrent Router Logo" />
+</p>
+
+# 🚀 Smart Torrent Router for Firefox
+
+[![Mozilla Add-on](https://img.shields.io/badge/Firefox-Extension-orange.svg?style=flat-square&logo=firefox)](https://addons.mozilla.org/firefox/)
+[![Manifest Version](https://img.shields.io/badge/Manifest-V2-blue.svg?style=flat-square)](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/manifest.json)
+[![License](https://img.shields.io/badge/License-MIT-green.svg?style=flat-square)](LICENSE)
 
 A production-quality Mozilla Firefox WebExtension (Manifest V2) that automatically intercepts `.torrent` downloads and `magnet:` links, classifies them by content type using a multi-factor scoring engine, routes them to a remote qBittorrent server with the appropriate category, and manages seeding limits according to tracker identity.
 
@@ -17,6 +25,16 @@ A production-quality Mozilla Firefox WebExtension (Manifest V2) that automatical
 - 🔌 **Global Enabled Toggle**: Easily turn the extension's interception on or off with a toggle switch inside the popup.
 - 💾 **Seeding Limit Enforcement**: A strict anti-leech seeding policy. Magnet links and non-TorrentBD torrents are added with strict seeding limits (`ratioLimit: 0` and `seedingTimeLimit: 0`) to stop seeding immediately, while `torrentbd.net` torrents seed normally (`ratioLimit: -1`).
 - 🎨 **Premium Aesthetics**: Features a modern, glassmorphic dark-themed UI dashboard for both the extension popup and options page.
+
+---
+
+## 📸 Screenshots
+
+Here is a preview of the settings and configuration panel:
+
+<p align="center">
+  <img src="public/screenshot_settings.png" width="700" alt="Smart Torrent Router Settings Dashboard" style="border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.3);" />
+</p>
 
 ---
 
