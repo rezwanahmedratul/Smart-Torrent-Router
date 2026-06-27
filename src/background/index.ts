@@ -90,6 +90,11 @@ async function loadSettings() {
     const data = await browser.storage.local.get('settings');
     if (data && data.settings) {
       settings = { ...DEFAULT_SETTINGS, ...data.settings };
+      // Deep merge categoryMapping to preserve new default categories!
+      settings.categoryMapping = {
+        ...DEFAULT_SETTINGS.categoryMapping,
+        ...(data.settings.categoryMapping || {}),
+      };
       settings.enabled = settings.enabled !== false;
       // Migrate old categories to new ones if they exist in categoryMapping
       if (settings.categoryMapping) {
