@@ -28,15 +28,7 @@ A production-quality Mozilla Firefox WebExtension (Manifest V2) that automatical
 
 ---
 
-## 📸 Screenshots
 
-Here is a preview of the settings and configuration panel:
-
-<p align="center">
-  <img src="public/screenshot_settings.png" width="700" alt="Smart Torrent Router Settings Dashboard" style="border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.3);" />
-</p>
-
----
 
 ## 📂 Directory Layout
 
