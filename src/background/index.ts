@@ -61,6 +61,7 @@ const DEFAULT_SETTINGS: RouterSettings = {
     books: 'books',
     iso: 'iso',
     software: 'software',
+    tutorial: 'tutorial',
     other: 'other',
   },
   tmdbApiKey: '',

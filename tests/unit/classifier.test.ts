@@ -65,6 +65,15 @@ describe('Classification Engine', () => {
     const result = classifyTorrent(name, files);
     expect(result.category).toBe('anime');
     expect(result.confidence).toBeGreaterThanOrEqual(0.7);
+
+    // Test anime with season tags does not get misclassified as a general series
+    const animeWithSeason = '[EMBER] Shingeki no Kyojin - S03E01 [1080p].mkv';
+    const filesWithSeason = [
+      { path: '[EMBER] Shingeki no Kyojin - S03E01 [1080p].mkv', size: 1_200_000_000 },
+    ];
+    const resultWithSeason = classifyTorrent(animeWithSeason, filesWithSeason);
+    expect(resultWithSeason.category).toBe('anime');
+    expect(resultWithSeason.confidence).toBeGreaterThanOrEqual(0.7);
   });
 
   it('should classify Games correctly', () => {
@@ -133,5 +142,19 @@ describe('Classification Engine', () => {
     const result = classifyTorrent(name, files);
     expect(result.category).toBe('software');
     expect(result.confidence).toBeGreaterThanOrEqual(0.6);
+  });
+
+  it('should classify Tutorials/Courses correctly', () => {
+    const name = 'Complete.Python.Bootcamp.From.Zero.to.Hero.in.Python.Udemy.Course';
+    const files = [
+      { path: '01. Course Overview/001. Introduction.mp4', size: 45_000_000 },
+      { path: '02. Basic Python/002. Variables.mp4', size: 120_000_000 },
+      { path: 'Resources/slides.pdf', size: 12_000_000 },
+      { path: 'Resources/exercise.txt', size: 1_200 },
+    ];
+
+    const result = classifyTorrent(name, files);
+    expect(result.category).toBe('tutorial');
+    expect(result.confidence).toBeGreaterThanOrEqual(0.7);
   });
 });

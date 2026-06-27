@@ -38,6 +38,7 @@ const CATEGORY_OPTIONS = [
   { value: 'books', label: 'Books' },
   { value: 'iso', label: 'ISO' },
   { value: 'software', label: 'Software' },
+  { value: 'tutorial', label: 'Tutorial' },
   { value: 'other', label: 'Other' },
 ];
 

@@ -42,6 +42,7 @@ const elements = {
   mapBooks: document.getElementById('map-books') as HTMLInputElement,
   mapIso: document.getElementById('map-iso') as HTMLInputElement,
   mapSoftware: document.getElementById('map-software') as HTMLInputElement,
+  mapTutorial: document.getElementById('map-tutorial') as HTMLInputElement,
   mapOther: document.getElementById('map-other') as HTMLInputElement,
 
   // Integrations
@@ -73,6 +74,7 @@ const DEFAULT_MAPPING = {
   books: 'books',
   iso: 'iso',
   software: 'software',
+  tutorial: 'tutorial',
   other: 'other',
 };
 
@@ -219,6 +221,7 @@ async function loadCurrentSettings() {
       elements.mapBooks.value = map.books || 'books';
       elements.mapIso.value = map.iso || 'iso';
       elements.mapSoftware.value = map.software || 'software';
+      elements.mapTutorial.value = map.tutorial || 'tutorial';
       elements.mapOther.value = map.other || 'other';
 
       // Integrations
@@ -352,6 +355,7 @@ async function saveSettings() {
       books: elements.mapBooks.value.trim() || 'books',
       iso: elements.mapIso.value.trim() || 'iso',
       software: elements.mapSoftware.value.trim() || 'software',
+      tutorial: elements.mapTutorial.value.trim() || 'tutorial',
       other: elements.mapOther.value.trim() || 'other',
     },
     tmdbApiKey: elements.tmdbKey.value.trim(),
@@ -420,6 +424,7 @@ function exportSettings() {
       books: elements.mapBooks.value.trim() || 'books',
       iso: elements.mapIso.value.trim() || 'iso',
       software: elements.mapSoftware.value.trim() || 'software',
+      tutorial: elements.mapTutorial.value.trim() || 'tutorial',
       other: elements.mapOther.value.trim() || 'other',
     },
     tmdbApiKey: elements.tmdbKey.value.trim(),
@@ -508,6 +513,7 @@ const CATEGORY_OPTIONS = [
   { value: 'books', label: 'Books' },
   { value: 'iso', label: 'ISO' },
   { value: 'software', label: 'Software' },
+  { value: 'tutorial', label: 'Tutorial' },
   { value: 'other', label: 'Other' },
 ];
 

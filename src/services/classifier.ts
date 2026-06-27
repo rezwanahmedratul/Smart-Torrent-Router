@@ -18,6 +18,7 @@ export const CATEGORY_GAMES = 'games';
 export const CATEGORY_BOOKS = 'books';
 export const CATEGORY_ISO = 'iso';
 export const CATEGORY_SOFTWARE = 'software';
+export const CATEGORY_TUTORIAL = 'tutorial';
 export const CATEGORY_OTHER = 'other';
 
 // File Extensions Groups
@@ -114,6 +115,31 @@ const SOFTWARE_KEYWORDS = [
   'crack.exe',
 ];
 
+const TUTORIAL_KEYWORDS = [
+  'tutorial',
+  'course',
+  'class',
+  'study',
+  'material',
+  'learn',
+  'lecture',
+  'lectures',
+  'training',
+  'udemy',
+  'coursera',
+  'edx',
+  'skillshare',
+  'pluralsight',
+  'lynda',
+  'masterclass',
+  'educative',
+  'oreilly',
+  'bootcamp',
+  'workshop',
+  'curriculum',
+  'syllabus',
+];
+
 // Helper to check file extensions
 const getExtension = (path: string): string => {
   const parts = path.split('.');
@@ -134,6 +160,7 @@ export function classifyTorrent(
     [CATEGORY_BOOKS]: 0,
     [CATEGORY_ISO]: 0,
     [CATEGORY_SOFTWARE]: 0,
+    [CATEGORY_TUTORIAL]: 0,
     [CATEGORY_OTHER]: 10, // Base fallback score for Other
   };
 
@@ -336,10 +363,9 @@ export function classifyTorrent(
     scores[CATEGORY_MOVIES] -= 40;
   }
 
-  // Anime vs TV adjustments
-  if (scores[CATEGORY_ANIME] > 40 && scores[CATEGORY_SERIES] > 0) {
-    // Anime is TV-like, but if it has anime signals, raise anime and depress general TV
-    scores[CATEGORY_SERIES] -= 15;
+  // Anime vs TV adjustments (Anime is TV-like, but if it has anime signals, prefer anime and depress general series/TV heavily)
+  if (scores[CATEGORY_ANIME] > 20 && scores[CATEGORY_SERIES] > 0) {
+    scores[CATEGORY_SERIES] = Math.max(0, scores[CATEGORY_SERIES] - (scores[CATEGORY_ANIME] + 10));
   }
 
   // --- GAMES ---
@@ -377,6 +403,22 @@ export function classifyTorrent(
   } else if (scores[CATEGORY_SOFTWARE] > 30 && gameIndicators.largeBinFiles > 0) {
     // If it has setup files and big bins, but no specific steam_api, might be a game
     scores[CATEGORY_GAMES] += 15;
+  }
+
+  // --- TUTORIAL ---
+  const matchesTutorialKeywords = TUTORIAL_KEYWORDS.some(kw => nameLower.includes(kw));
+  if (matchesTutorialKeywords) {
+    scores[CATEGORY_TUTORIAL] += 60;
+  }
+  const hasTutorialFolders = files.some(f => {
+    const fn = f.path.toLowerCase();
+    return fn.includes('/lecture') || fn.includes('/chapter') || fn.includes('/section') || fn.includes('/module') || fn.includes('/week');
+  });
+  if (hasTutorialFolders) {
+    scores[CATEGORY_TUTORIAL] += 30;
+  }
+  if (videoFileCount > 0 && bookFileCount > 0) {
+    scores[CATEGORY_TUTORIAL] += 20;
   }
 
   // Ensure scores are non-negative
