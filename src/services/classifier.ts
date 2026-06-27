@@ -282,23 +282,25 @@ export function classifyTorrent(
   }
 
   // --- SERIES ---
-  // TV regex matches
+  // TV regex matches (Supports S01, S02, s01-s02, season 1, ep 1, s01e01, etc.)
   const hasTvSeasonEpisode = /s\d{2}e\d{2}/i.test(nameLower) || /\d+x\d+/.test(nameLower);
-  const hasTvSeasonOnly = /season\s\d+/i.test(nameLower) || /s\d{1(2)}/i.test(nameLower) || /complete\sseason/i.test(nameLower);
-  const hasTvEpisodeOnly = /ep[isode]*\s\d+/i.test(nameLower);
+  const hasTvSeasonPattern = /\bs\d+(?:-s\d+)?\b/i.test(nameLower);
+  const hasTvSeasonOnly = /season[s\s-._]*\d+/i.test(nameLower) || /complete\s*season/i.test(nameLower);
+  const hasTvEpisodeOnly = /ep[isode]*[s\s-._]*\d+/i.test(nameLower);
 
   if (hasTvSeasonEpisode) {
     scores[CATEGORY_SERIES] += 75;
-  } else if (hasTvSeasonOnly) {
-    scores[CATEGORY_SERIES] += 60;
+  } else if (hasTvSeasonPattern || hasTvSeasonOnly) {
+    scores[CATEGORY_SERIES] += 65;
   } else if (hasTvEpisodeOnly) {
     scores[CATEGORY_SERIES] += 40;
   }
 
-  // Check file directories (e.g., files in "Season 1/" folders)
+  // Check file directories (e.g., files in "Season 1/" or "S01/" or "Show Name/S01/" folders)
   const hasSeasonFolders = files.some(f => {
     const parts = f.path.toLowerCase().split('/');
-    return parts.length > 1 && (parts[0].includes('season') || /^s\d+$/.test(parts[0]));
+    // Check if any subfolder matches season keyword or s01-like patterns
+    return parts.some(part => part.includes('season') || /^s\d+$/.test(part) || /^s\d+-s\d+$/.test(part));
   });
   if (hasSeasonFolders) {
     scores[CATEGORY_SERIES] += 30;
@@ -469,7 +471,8 @@ export function cleanTorrentName(name: string): { title: string; year?: string }
   const titleWords: string[] = [];
 
   for (const word of words) {
-    if (cutOffTags.includes(word.toLowerCase())) {
+    const wl = word.toLowerCase();
+    if (cutOffTags.includes(wl) || /^s\d+(?:-s\d+)?$/i.test(wl)) {
       break;
     }
     titleWords.push(word);

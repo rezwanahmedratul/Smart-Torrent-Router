@@ -31,17 +31,29 @@ describe('Classification Engine', () => {
   });
 
   it('should classify TV Shows correctly', () => {
-    const name = 'Breaking.Bad.S05.Complete.Season.1080p.BluRay.x264';
-    const files = [
+    const name1 = 'Breaking.Bad.S05.Complete.Season.1080p.BluRay.x264';
+    const files1 = [
       { path: 'Season 5/Breaking.Bad.S05E01.mkv', size: 1_200_000_000 },
       { path: 'Season 5/Breaking.Bad.S05E02.mkv', size: 1_200_000_000 },
       { path: 'Season 5/Breaking.Bad.S05E03.mkv', size: 1_200_000_000 },
       { path: 'cover.jpg', size: 150_000 },
     ];
 
-    const result = classifyTorrent(name, files);
-    expect(result.category).toBe('series');
-    expect(result.confidence).toBeGreaterThanOrEqual(0.7);
+    const result1 = classifyTorrent(name1, files1);
+    expect(result1.category).toBe('series');
+    expect(result1.confidence).toBeGreaterThanOrEqual(0.7);
+
+    // Test s01-s02 and nested subfolder season patterns
+    const name2 = 'Severance.s100-s105.Bluray';
+    const files2 = [
+      { path: 'Severance/S250/Severance.S250E01.mkv', size: 1_200_000_000 },
+    ];
+    const result2 = classifyTorrent(name2, files2);
+    expect(result2.category).toBe('series');
+    expect(result2.confidence).toBeGreaterThanOrEqual(0.7);
+
+    const case6 = cleanTorrentName('Show.Title.s10-s24.720p.Webrip');
+    expect(case6.title).toBe('Show Title');
   });
 
   it('should classify Anime correctly', () => {
