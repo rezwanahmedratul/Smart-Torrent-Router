@@ -17,8 +17,8 @@ A production-quality Mozilla Firefox WebExtension (Manifest V2) that automatical
 - 📥 **In-Transit Interception**: Uses `browser.webRequest.onHeadersReceived` blocking stream filtering (`browser.webRequest.filterResponseData`) to capture torrent file bytes in-transit. This bypasses the Firefox download manager without triggering secondary network requests, preventing cookie-loss or `403 Forbidden` errors on private trackers.
 - ⚡ **Instant File Routing**: Decodes `.torrent` files locally in the background page (via a custom bencode parser) to extract file lists and compute SHA-1 infohashes, classifying and uploading them instantly.
 - 🧲 **Magnet Metadata Polling**: Adds magnet links in a paused state to qBittorrent, polling the server's file list once metadata completes to perform high-accuracy classification.
-- 🧠 **Classification Scoring Engine**: Fully offline heuristics analyzing file extensions, directory structures, name keywords, and release groups across 9 categories:
-  - `movies`, `series`, `anime`, `music`, `games`, `books`, `iso`, `software`, `other`.
+- 🧠 **Classification Scoring Engine**: Fully offline heuristics analyzing file extensions, directory structures, name keywords, and release groups across 10 categories:
+  - `movies`, `series`, `anime`, `music`, `games`, `books`, `iso`, `software`, `tutorial`, `other`.
 - 🌐 **Metadata Providers**: Integrates with TMDB (Movies & Series) and AniList (Anime) APIs as online directories to boost classification confidence when offline details are ambiguous.
 - ⏸️ **User Classification Prompt**: If classification confidence is low, the torrent is held paused in a temporary category (`__pending__`) while notifying the user to select the correct category.
 - ⚙️ **Router History Log**: A dedicated history panel in the settings dashboard stores previous entries, allows category updates on past items, and supports one-click history clearing.
@@ -142,6 +142,7 @@ Map classification output categories to your custom qBittorrent category labels:
 - **books** (e.g. mapped to `Books`)
 - **iso** (e.g. mapped to `ISOs`)
 - **software** (e.g. mapped to `Software`)
+- **tutorial** (e.g. mapped to `Tutorials`)
 - **other** (e.g. mapped to `Downloads`)
 
 ### Metadata API integrations
