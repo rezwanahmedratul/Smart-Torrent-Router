@@ -1,0 +1,24 @@
+{
+  "name": "smart-torrent-router",
+  "version": "1.0.0",
+  "description": "Smart Torrent Router for Firefox (WebExtension Manifest V2)",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "node build.js",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "playwright test",
+    "lint": "eslint src/ --ext .ts",
+    "format": "prettier --write \"src/**/*.{ts,html,css}\" \"tests/**/*.ts\""
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.41.1",
+    "@types/firefox-webext-browser": "^120.0.4",
+    "@types/node": "^20.11.0",
+    "happy-dom": "^13.3.1",
+    "typescript": "^5.3.3",
+    "vite": "^5.0.12",
+    "vitest": "^1.2.1"
+  }
+}

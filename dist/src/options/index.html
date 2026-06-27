@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Smart Torrent Router Settings</title>
+    <script type="module" crossorigin src="/assets/options.js"></script>
+    <link rel="modulepreload" crossorigin href="/assets/modulepreload-polyfill-B5Qt9EMX.js">
+    <link rel="stylesheet" crossorigin href="/assets/options.css">
+  </head>
+  <body>
+    <header>
+      <h1>
+        <svg
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+        </svg>
+        Smart Torrent Router
+      </h1>
+      <div style="display: flex; align-items: center; gap: 1rem;">
+        <div id="conn-badge" class="status-indicator">
+          <span id="conn-dot" class="status-dot"></span>
+          <span id="conn-text">Disconnected</span>
+        </div>
+        <button id="theme-toggle" class="theme-toggle-btn">
+          <span class="icon">🌓</span>
+          <span class="text">Theme</span>
+        </button>
+      </div>
+    </header>
+
+    <main class="container">
+      <nav class="sidebar">
+        <a class="nav-item active" data-tab="tab-connection">Connection</a>
+        <a class="nav-item" data-tab="tab-behavior">Router Behavior</a>
+        <a class="nav-item" data-tab="tab-categories">Category Mappings</a>
+        <a class="nav-item" data-tab="tab-integrations">Integrations</a>
+        <a class="nav-item" data-tab="tab-data">Data Management</a>
+        <a class="nav-item" data-tab="tab-history">Router History</a>
+      </nav>
+
+      <!-- Content Area -->
+      <section class="content">
+        <!-- 1. Connection Panel -->
+        <div id="tab-connection" class="tab-panel active">
+          <div class="card">
+            <h2>Connection Settings</h2>
+            <p class="subtitle">Configure settings to authenticate with your remote qBittorrent client.</p>
+
+            <div class="form-group">
+              <label for="qb-url">
+                qBittorrent Web UI URL <span class="required">*</span>
+                <span class="helper">Include protocol and port, e.g. <code>http://localhost:8080</code> or <code>https://192.168.1.100:8443</code></span>
+              </label>
+              <input type="url" id="qb-url" class="input-control" placeholder="http://127.0.0.1:8080" required />
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="qb-username">Username</label>
+                <input type="text" id="qb-username" class="input-control" placeholder="admin" />
+              </div>
+              <div class="form-group">
+                <label for="qb-password">Password</label>
+                <input type="password" id="qb-password" class="input-control" placeholder="••••••••" />
+              </div>
+            </div>
+
+            <div class="form-group" style="margin-top: 1.25rem;">
+              <label for="qb-apikey">
+                API Key / Auth Token (Alternative)
+                <span class="helper">Use this instead of username/password if your server is behind a reverse proxy (e.g. Cloudflare Access, Authelia, or Nginx basic auth) or requires token validation.</span>
+              </label>
+              <input type="password" id="qb-apikey" class="input-control" placeholder="Paste server API key or authorization token" />
+            </div>
+
+            <div style="margin-top: 1.5rem; display: flex; gap: 1rem;">
+              <button id="btn-test-conn" class="btn btn-secondary">Test Connection</button>
+              <button id="btn-open-qb" class="btn btn-secondary" style="display: none;">Open Web UI</button>
+            </div>
+            
+            <div id="conn-test-result" style="margin-top: 1rem; display: none;"></div>
+          </div>
+
+          <div class="card">
+            <h2>HTTPS and Self-Signed Certificates</h2>
+            <div class="alert alert-info">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="16" x2="12" y2="12"></line>
+                <line x1="12" y1="8" x2="12.01" y2="8"></line>
+              </svg>
+              <div>
+                <strong>Security Alert:</strong> Browser extensions cannot bypass SSL verification for local self-signed HTTPS connections. If your connection fails and you are using HTTPS, please click below to open your qBittorrent page in a new browser tab and <strong>permanently accept the certificate exception</strong>.
+              </div>
+            </div>
+            <button id="btn-ssl-help" class="btn btn-secondary">Accept SSL Exception</button>
+          </div>
+        </div>
+
+        <!-- 2. Router Behavior Panel -->
+        <div id="tab-behavior" class="tab-panel">
+          <div class="card">
+            <h2>Routing Options</h2>
+            
+            <div class="form-group">
+              <label>
+                Confidence Auto-Route Threshold (%)
+                <span class="helper">Confidence rating above which torrents are automatically classified and resumed. Below this value, the router pauses the torrent and prompts you.</span>
+              </label>
+              <div class="range-group">
+                <input type="range" id="confidence-threshold" class="range-slider" min="10" max="100" value="80" />
+                <span id="threshold-val" class="range-val">80%</span>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="poll-interval">
+                  Metadata Polling Interval (seconds)
+                  <span class="helper">How frequently to check if qBittorrent has completed metadata download.</span>
+                </label>
+                <input type="number" id="poll-interval" class="input-control" min="1" max="15" value="2" />
+              </div>
+              <div class="form-group">
+                <label for="poll-timeout">
+                  Metadata Polling Timeout (seconds)
+                  <span class="helper">Maximum duration to wait for metadata before giving up and reporting an error.</span>
+                </label>
+                <input type="number" id="poll-timeout" class="input-control" min="30" max="1200" value="300" />
+              </div>
+            </div>
+
+            <div class="form-group" style="margin-top: 1rem;">
+              <label for="temp-category">
+                Temporary Router Category
+                <span class="helper">Torrents are assigned to this category temporarily while they wait for metadata/classification.</span>
+              </label>
+              <input type="text" id="temp-category" class="input-control" placeholder="__pending__" />
+            </div>
+          </div>
+
+          <div class="card">
+            <h2>Notifications & Logs</h2>
+            
+            <div class="switch-group">
+              <div class="label-container">
+                <span class="title">Notify on Auto-Classification</span>
+                <span class="desc">Show a system notification when a torrent is automatically assigned a category.</span>
+              </div>
+              <label class="switch">
+                <input type="checkbox" id="notify-auto" checked />
+                <span class="slider"></span>
+              </label>
+            </div>
+
+            <div class="switch-group">
+              <div class="label-container">
+                <span class="title">Notify on Pending Action</span>
+                <span class="desc">Show a system notification when a torrent is waiting for manual category choice.</span>
+              </div>
+              <label class="switch">
+                <input type="checkbox" id="notify-pending" checked />
+                <span class="slider"></span>
+              </label>
+            </div>
+
+            <div class="switch-group">
+              <div class="label-container">
+                <span class="title">Notify on Errors</span>
+                <span class="desc">Show a system notification if connection, parsing, or metadata times out.</span>
+              </div>
+              <label class="switch">
+                <input type="checkbox" id="notify-error" checked />
+                <span class="slider"></span>
+              </label>
+            </div>
+
+            <div class="switch-group" style="margin-top: 1rem; border-top: 1px solid var(--border-color); padding-top: 1.5rem;">
+              <div class="label-container">
+                <span class="title">Developer Debug Mode</span>
+                <span class="desc">Enable extensive logging to the browser console.</span>
+              </div>
+              <label class="switch">
+                <input type="checkbox" id="dev-logs" />
+                <span class="slider"></span>
+              </label>
+            </div>
+          </div>
+        </div>
+        <!-- 3. Category Mappings Panel -->
+        <div id="tab-categories" class="tab-panel">
+          <div class="card">
+            <h2>Category Mapping</h2>
+            <p class="subtitle">Map classification results to your custom qBittorrent category labels.</p>
+            
+            <div class="mappings-grid">
+              <div class="mapping-card">
+                <label>Movies</label>
+                <input type="text" id="map-movies" class="input-control" placeholder="movies" />
+              </div>
+              <div class="mapping-card">
+                <label>Series</label>
+                <input type="text" id="map-series" class="input-control" placeholder="series" />
+              </div>
+              <div class="mapping-card">
+                <label>Anime</label>
+                <input type="text" id="map-anime" class="input-control" placeholder="anime" />
+              </div>
+              <div class="mapping-card">
+                <label>Music</label>
+                <input type="text" id="map-music" class="input-control" placeholder="music" />
+              </div>
+              <div class="mapping-card">
+                <label>Games</label>
+                <input type="text" id="map-games" class="input-control" placeholder="games" />
+              </div>
+              <div class="mapping-card">
+                <label>Books</label>
+                <input type="text" id="map-books" class="input-control" placeholder="books" />
+              </div>
+              <div class="mapping-card">
+                <label>ISOs</label>
+                <input type="text" id="map-iso" class="input-control" placeholder="iso" />
+              </div>
+              <div class="mapping-card">
+                <label>Software</label>
+                <input type="text" id="map-software" class="input-control" placeholder="software" />
+              </div>
+              <div class="mapping-card">
+                <label>Other / General</label>
+                <input type="text" id="map-other" class="input-control" placeholder="other" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4. Integrations Panel -->
+        <div id="tab-integrations" class="tab-panel">
+          <div class="card">
+            <h2>TMDB Lookup (Movies & TV)</h2>
+            <p class="subtitle">Enabling TMDB will improve classification accuracy for borderline movie and TV titles.</p>
+            
+            <div class="form-group">
+              <label for="tmdb-key">
+                TMDB API v3 Key or Read Access Token (v4 Bearer)
+                <span class="helper">Enter your API key. If left blank, TMDB lookup is disabled. You can generate a free key on <code>themoviedb.org</code>.</span>
+              </label>
+              <input type="password" id="tmdb-key" class="input-control" placeholder="Paste TMDB token or key" />
+            </div>
+          </div>
+
+          <div class="card">
+            <h2>AniList Lookup (Anime)</h2>
+            <p class="subtitle">Enabling AniList queries the public AniList directory to verify Anime series names.</p>
+            
+            <div class="switch-group">
+              <div class="label-container">
+                <span class="title">Enable AniList Lookup</span>
+                <span class="desc">Uses AniList's public API to resolve anime matching queries (no key needed).</span>
+              </div>
+              <label class="switch">
+                <input type="checkbox" id="anilist-enabled" checked />
+                <span class="slider"></span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- 5. Data Management Panel -->
+        <div id="tab-data" class="tab-panel">
+          <div class="card">
+            <h2>Backup Settings</h2>
+            <p class="subtitle">Export your extension configs to a file or import them on a different device.</p>
+            
+            <div style="display: flex; gap: 1.5rem;">
+              <button id="btn-export" class="btn btn-secondary">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
+                </svg>
+                Export Configuration
+              </button>
+              
+              <button id="btn-trigger-import" class="btn btn-secondary">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+                </svg>
+                Import Configuration
+              </button>
+              <input type="file" id="import-file" style="display: none;" accept=".json" />
+            </div>
+            
+            <div id="import-result" style="margin-top: 1rem; display: none;"></div>
+          </div>
+        </div>
+
+        <!-- 6. Router History Panel -->
+        <div id="tab-history" class="tab-panel">
+          <div class="card">
+            <h2>Router History</h2>
+            <p class="subtitle">Complete log of all routed torrent downloads and magnet links.</p>
+            
+            <div id="history-container" class="activities-list">
+              <div class="no-jobs" style="text-align: center; color: var(--text-muted); padding: 3rem 1rem; border: 1px dashed var(--border-color); border-radius: 12px;">
+                No history entries recorded yet.
+              </div>
+            </div>
+
+            <div style="margin-top: 1.5rem; display: flex; justify-content: flex-end;">
+              <button id="btn-clear-all-history" class="btn btn-danger">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 4px;">
+                  <polyline points="3 6 5 6 21 6"></polyline>
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                </svg>
+                Clear All History
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sticky Footer actions -->
+        <div class="actions-footer">
+          <button id="btn-reset" class="btn btn-secondary">Restore Defaults</button>
+          <button id="btn-save" class="btn btn-primary">Save Settings</button>
+        </div>
+      </section>
+    </main>
+
+  </body>
+</html>
