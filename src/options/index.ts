@@ -584,29 +584,47 @@ function renderHistory(jobs: any[]) {
       }
     }
 
-    let selectOptionsHtml = CATEGORY_OPTIONS.map((opt) => {
-      const selectedAttr = opt.value === selectedVal ? 'selected' : '';
-      return `<option value="${opt.value}" ${selectedAttr}>${opt.label}</option>`;
-    }).join('');
-
     item.innerHTML = `
       <div class="info">
-        <div class="title" style="font-weight: 600; color: var(--text-primary);" title="${job.name}">${job.name}</div>
+        <div class="title" style="font-weight: 600; color: var(--text-primary);"></div>
         <div class="meta" style="margin-top: 0.25rem; font-size: 0.8rem; color: var(--text-secondary); display: flex; align-items: center; gap: 0.5rem;">
-          <span class="badge ${badgeClass}">${statusText}</span>
+          <span class="badge"></span>
           <span>•</span>
-          <span>${typeLabel}</span>
+          <span class="type-label"></span>
           <span>•</span>
-          <span>${dateStr}</span>
+          <span class="date-label"></span>
         </div>
       </div>
       <div class="action-col" style="display: flex; align-items: center; gap: 0.5rem; flex-shrink: 0;">
         <span style="font-size: 0.8rem; color: var(--text-secondary);">Category:</span>
-        <select class="select-control history-select-category" data-hash="${job.hash}" style="padding: 0.25rem 0.5rem; font-size: 0.8rem; background-color: rgba(11,15,25,0.6); border: 1px solid var(--border-color); color: var(--text-primary); border-radius: 6px; outline: none;">
-          ${selectOptionsHtml}
+        <select class="select-control history-select-category" style="padding: 0.25rem 0.5rem; font-size: 0.8rem; background-color: rgba(11,15,25,0.6); border: 1px solid var(--border-color); color: var(--text-primary); border-radius: 6px; outline: none;">
         </select>
       </div>
     `;
+
+    const titleEl = item.querySelector('.title') as HTMLDivElement;
+    titleEl.textContent = job.name;
+    titleEl.title = job.name;
+
+    const badgeEl = item.querySelector('.badge') as HTMLSpanElement;
+    badgeEl.textContent = statusText;
+    badgeEl.className = `badge ${badgeClass}`;
+
+    item.querySelector('.type-label')!.textContent = typeLabel;
+    item.querySelector('.date-label')!.textContent = dateStr;
+
+    const selectEl = item.querySelector('.history-select-category') as HTMLSelectElement;
+    selectEl.dataset.hash = job.hash;
+
+    CATEGORY_OPTIONS.forEach((opt) => {
+      const option = document.createElement('option');
+      option.value = opt.value;
+      option.textContent = opt.label;
+      if (opt.value === selectedVal) {
+        option.selected = true;
+      }
+      selectEl.appendChild(option);
+    });
 
     elements.historyContainer.appendChild(item);
   });

@@ -296,102 +296,158 @@ function renderJobs() {
   recentJobs.forEach((job) => {
     const card = document.createElement('div');
     card.className = 'job-card';
+    card.dataset.hash = job.hash;
 
-    // Status mapping
-    let statusBadge = '';
-    let statusAction = '';
-    let rightCol = '';
-
-    if (job.status === 'pending_metadata') {
-      statusBadge = '<span class="badge badge-info">Polling Metadata</span>';
-      rightCol = '<div class="spinner"></div>';
-    } else if (job.status === 'classifying') {
-      statusBadge = '<span class="badge badge-info">Classifying</span>';
-      rightCol = '<div class="spinner"></div>';
-    } else if (job.status === 'completed') {
-      statusBadge = `<span class="badge badge-success">${job.category}</span>`;
-      rightCol = `<span style="color:var(--success); font-weight:bold; font-size:0.9rem;">✓</span>`;
-    } else if (job.status === 'failed') {
-      statusBadge = '<span class="badge badge-danger">Failed</span>';
-      rightCol = `<span style="color:var(--danger); font-size:0.8rem;">✕</span>`;
-    } else if (job.status === 'pending_user') {
-      statusBadge = '<span class="badge badge-warning">Needs Category</span>';
-    }
-
-    const nameTruncated = job.name;
-    const typeLabel = job.type === 'magnet' ? 'magnet' : 'torrent file';
-
-    let cardInner = `
+    // Use a static, safe HTML skeleton literal
+    card.innerHTML = `
       <div class="header-row">
         <div class="title-col">
-          <div class="name" title="${job.name}">${nameTruncated}</div>
+          <div class="name"></div>
           <div class="meta">
-            ${statusBadge}
+            <span class="badge"></span>
             <span>•</span>
-            <span>${typeLabel}</span>
+            <span class="type-label"></span>
           </div>
         </div>
-        <div class="status-col">
-          ${rightCol}
-        </div>
+        <div class="status-col"></div>
       </div>
+      <div class="extra-panel"></div>
     `;
 
-    // Render resolution dropdown and actions for pending user choice
+    // 1. Populate details safely
+    const nameEl = card.querySelector('.name') as HTMLDivElement;
+    nameEl.textContent = job.name;
+    nameEl.title = job.name;
+
+    const badgeEl = card.querySelector('.badge') as HTMLSpanElement;
+    const typeLabelEl = card.querySelector('.type-label') as HTMLSpanElement;
+    typeLabelEl.textContent = job.type === 'magnet' ? 'magnet' : 'torrent file';
+
+    const statusCol = card.querySelector('.status-col') as HTMLDivElement;
+
+    // Status styling
+    let badgeClass = 'badge-info';
+    let statusText = '';
+
+    if (job.status === 'pending_metadata') {
+      badgeClass = 'badge-info';
+      statusText = 'Polling Metadata';
+      const spinner = document.createElement('div');
+      spinner.className = 'spinner';
+      statusCol.appendChild(spinner);
+    } else if (job.status === 'classifying') {
+      badgeClass = 'badge-info';
+      statusText = 'Classifying';
+      const spinner = document.createElement('div');
+      spinner.className = 'spinner';
+      statusCol.appendChild(spinner);
+    } else if (job.status === 'completed') {
+      badgeClass = 'badge-success';
+      statusText = job.category || 'completed';
+      const checkSpan = document.createElement('span');
+      checkSpan.style.color = 'var(--success)';
+      checkSpan.style.fontWeight = 'bold';
+      checkSpan.style.fontSize = '0.9rem';
+      checkSpan.textContent = '✓';
+      statusCol.appendChild(checkSpan);
+    } else if (job.status === 'failed') {
+      badgeClass = 'badge-danger';
+      statusText = 'Failed';
+      const crossSpan = document.createElement('span');
+      crossSpan.style.color = 'var(--danger)';
+      crossSpan.style.fontSize = '0.8rem';
+      crossSpan.textContent = '✕';
+      statusCol.appendChild(crossSpan);
+    } else if (job.status === 'pending_user') {
+      badgeClass = 'badge-warning';
+      statusText = 'Needs Category';
+    }
+
+    badgeEl.textContent = statusText;
+    badgeEl.className = `badge ${badgeClass}`;
+
+    // 2. Extra panels (low confidence selectors / errors)
+    const extraPanel = card.querySelector('.extra-panel') as HTMLDivElement;
+
     if (job.status === 'pending_user') {
       const suggestedVal = job.suggestedCategory || 'other';
       const selectedVal = selectedCategories.get(job.hash) || suggestedVal;
 
-      let selectOptionsHtml = CATEGORY_OPTIONS.map((opt) => {
-        const selectedAttr = opt.value === selectedVal ? 'selected' : '';
-        return `<option value="${opt.value}" ${selectedAttr}>${opt.label}</option>`;
-      }).join('');
+      const resolvePanel = document.createElement('div');
+      resolvePanel.className = 'resolve-panel';
+
+      const descP = document.createElement('p');
+      descP.innerHTML = 'Confidence was low. Suggested: <strong></strong>';
+      descP.querySelector('strong')!.textContent = `${suggestedVal} (${Math.round((job.confidence || 0) * 100)}%)`;
+      resolvePanel.appendChild(descP);
+
+      const selectRow = document.createElement('div');
+      selectRow.className = 'select-row';
+
+      const selectEl = document.createElement('select');
+      selectEl.className = 'select-control';
+      selectEl.dataset.hash = job.hash;
+
+      CATEGORY_OPTIONS.forEach((opt) => {
+        const option = document.createElement('option');
+        option.value = opt.value;
+        option.textContent = opt.label;
+        if (opt.value === selectedVal) {
+          option.selected = true;
+        }
+        selectEl.appendChild(option);
+      });
+      selectRow.appendChild(selectEl);
+
+      const btnResolve = document.createElement('button');
+      btnResolve.className = 'btn btn-primary btn-small btn-resolve';
+      btnResolve.dataset.hash = job.hash;
+      btnResolve.textContent = 'Resume';
+      selectRow.appendChild(btnResolve);
+
+      resolvePanel.appendChild(selectRow);
 
       // Build file tree list if cached
-      let fileListHtml = '';
       if (job.files && job.files.length > 0) {
-        const isOpen = openFileLists.has(job.hash) ? 'open' : '';
-        const displayStyle = openFileLists.has(job.hash) ? 'style="display:block;"' : '';
+        const isOpen = openFileLists.has(job.hash);
         
-        fileListHtml = `
-          <div class="file-list-toggle" data-hash="${job.hash}">
-            📁 View Torrent Files (${job.files.length})
-          </div>
-          <div class="file-list-container ${isOpen}" data-hash="${job.hash}" ${displayStyle}>
-            ${job.files
-              .map(
-                (f) =>
-                  `<div class="file-item" title="${f.path}">${f.path.split('/').pop()} (${formatSize(
-                    f.size
-                  )})</div>`
-              )
-              .join('')}
-          </div>
-        `;
+        const toggleDiv = document.createElement('div');
+        toggleDiv.className = 'file-list-toggle';
+        toggleDiv.dataset.hash = job.hash;
+        toggleDiv.textContent = `📁 View Torrent Files (${job.files.length})`;
+        resolvePanel.appendChild(toggleDiv);
+
+        const containerDiv = document.createElement('div');
+        containerDiv.className = `file-list-container ${isOpen ? 'open' : ''}`;
+        containerDiv.dataset.hash = job.hash;
+        if (isOpen) {
+          containerDiv.style.display = 'block';
+        }
+
+        job.files.forEach((f) => {
+          const fileItem = document.createElement('div');
+          fileItem.className = 'file-item';
+          fileItem.title = f.path;
+          const fileName = f.path.split('/').pop() || '';
+          fileItem.textContent = `${fileName} (${formatSize(f.size)})`;
+          containerDiv.appendChild(fileItem);
+        });
+
+        resolvePanel.appendChild(containerDiv);
       }
 
-      cardInner += `
-        <div class="resolve-panel">
-          <p>Confidence was low. Suggested: <strong>${suggestedVal} (${Math.round(
-        (job.confidence || 0) * 100
-      )}%)</strong></p>
-          <div class="select-row">
-            <select class="select-control" data-hash="${job.hash}">
-              ${selectOptionsHtml}
-            </select>
-            <button class="btn btn-primary btn-small btn-resolve" data-hash="${job.hash}">Resume</button>
-          </div>
-          ${fileListHtml}
-        </div>
-      `;
+      extraPanel.appendChild(resolvePanel);
     }
 
     if (job.status === 'failed' && job.error) {
-      cardInner += `
-        <div style="font-size:0.75rem; color:var(--danger); border-top:1px solid rgba(255,255,255,0.05); padding-top:0.4rem; margin-top:0.4rem;">
-          Error: ${job.error}
-        </div>
-      `;
+      const errDiv = document.createElement('div');
+      errDiv.style.fontSize = '0.75rem';
+      errDiv.style.color = 'var(--danger)';
+      errDiv.style.borderTop = '1px solid rgba(255,255,255,0.05)';
+      errDiv.style.paddingTop = '0.4rem';
+      errDiv.style.marginTop = '0.4rem';
+      errDiv.textContent = `Error: ${job.error}`;
+      extraPanel.appendChild(errDiv);
     }
 
     if (job.status === 'completed' || job.status === 'failed') {
@@ -404,23 +460,43 @@ function renderJobs() {
           }
         }
       }
-      
-      let selectOptionsHtml = CATEGORY_OPTIONS.map((opt) => {
-        const selectedAttr = opt.value === selectedVal ? 'selected' : '';
-        return `<option value="${opt.value}" ${selectedAttr}>${opt.label}</option>`;
-      }).join('');
 
-      cardInner += `
-        <div class="category-select-row" style="display: flex; gap: 0.5rem; align-items: center; margin-top: 0.4rem; padding-top: 0.4rem; border-top: 1px solid rgba(255,255,255,0.05);">
-          <span style="font-size: 0.75rem; color: var(--text-secondary);">Category:</span>
-          <select class="select-control popup-select-category" data-hash="${job.hash}" style="padding: 0.15rem 0.4rem; font-size: 0.75rem; width: 100%;">
-            ${selectOptionsHtml}
-          </select>
-        </div>
-      `;
+      const selectRow = document.createElement('div');
+      selectRow.className = 'category-select-row';
+      selectRow.style.display = 'flex';
+      selectRow.style.gap = '0.5rem';
+      selectRow.style.alignItems = 'center';
+      selectRow.style.marginTop = '0.4rem';
+      selectRow.style.paddingTop = '0.4rem';
+      selectRow.style.borderTop = '1px solid rgba(255,255,255,0.05)';
+
+      const labelSpan = document.createElement('span');
+      labelSpan.style.fontSize = '0.75rem';
+      labelSpan.style.color = 'var(--text-secondary)';
+      labelSpan.textContent = 'Category:';
+      selectRow.appendChild(labelSpan);
+
+      const selectEl = document.createElement('select');
+      selectEl.className = 'select-control popup-select-category';
+      selectEl.dataset.hash = job.hash;
+      selectEl.style.padding = '0.15rem 0.4rem';
+      selectEl.style.fontSize = '0.75rem';
+      selectEl.style.width = '100%';
+
+      CATEGORY_OPTIONS.forEach((opt) => {
+        const option = document.createElement('option');
+        option.value = opt.value;
+        option.textContent = opt.label;
+        if (opt.value === selectedVal) {
+          option.selected = true;
+        }
+        selectEl.appendChild(option);
+      });
+      selectRow.appendChild(selectEl);
+
+      extraPanel.appendChild(selectRow);
     }
 
-    card.innerHTML = cardInner;
     elements.jobsContainer.appendChild(card);
   });
 
